@@ -356,6 +356,12 @@ files:
       }
     }
   learner_created: true
+- name: src/cinema/Exceptions/PurchasedException.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13376#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Sun, 21 May 2023 21:19:41 UTC"
+record: 2

@@ -2,31 +2,19 @@ package cinema.Model;
 
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.Table;
+import com.google.common.collect.HashBasedTable;
 
 @Component
 public class theatre {
   int total_rows;
   int total_columns;
-  List<seat> available_seats = new ArrayList<>();
+  Table<Integer, Integer,Integer> seats = HashBasedTable.create();
 
   public theatre(){
     this.total_columns = 9;
     this.total_rows = 9;
     initSeats();
-  }
-
-  public void setTotal_rows(int total_rows) {
-    this.total_rows = total_rows;
-  }
-
-  public void setTotal_columns(int total_columns) {
-    this.total_columns = total_columns;
-  }
-
-  public void setAvailable_seats(List<seat> available_seats) {
-    this.available_seats = available_seats;
   }
 
   public int getTotal_columns() {
@@ -37,14 +25,15 @@ public class theatre {
     return total_rows;
   }
 
-  public List<seat> getAvailable_seats() {
-    return available_seats;
+  public Table<Integer,Integer, Integer> getSeats(){
+    return seats;
   }
 
   private void initSeats(){
     for(int i = 1 ; i <= total_rows ; i++){
+      int price = (i <= 4) ? 10 : 8;
       for(int j = 1 ; j <= total_columns ; j++){
-        available_seats.add(new seat(i,j));
+        seats.put(i,j,price);
       }
     }
   }
