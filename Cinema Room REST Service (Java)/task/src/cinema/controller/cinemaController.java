@@ -75,8 +75,20 @@ public class cinemaController {
       return null;
     } catch (Exception tokenEx) {
       return new ResponseEntity<>(Map.of("error", tokenEx.getMessage()),HttpStatus.BAD_REQUEST);
-
     }
+  }
+
+  @PostMapping(path=("/stats"))
+  public ResponseEntity<?> getStats(@RequestParam(required = false) String password){
+    if(password != null && password.equals("super_secret")){
+      Map<String, Integer> response = Map.of("current_income", cinemaDto.current_income(),
+        "number_of_available_seats", cinemaDto.number_of_available_seats(),
+        "number_of_purchased_tickets", cinemaDto.number_purchase_tickets());
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(Map.of("error", "The password is wrong!"), HttpStatus.valueOf(401));
+    }
+
   }
 
 }

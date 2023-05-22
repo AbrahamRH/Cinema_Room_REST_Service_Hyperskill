@@ -25,6 +25,7 @@ public class theatreDto {
   }
 
   public void getAvailable_seats(){
+    available_seats.clear();
     for(int i = 1 ; i <= seats.rowKeySet().size() ; i++){
       for(int j = 1 ; j <= seats.columnKeySet().size() ; j++){
         available_seats.add(new Ticket(i,j));
@@ -51,6 +52,26 @@ public class theatreDto {
       return refund;
     }
     throw new Exception("Wrong token!");
+  }
+  public int current_income(){
+    if(tickets_purchase.size() > 0){
+      List<Ticket> tickets = new  ArrayList<>(tickets_purchase.values());
+      int income = 0;
+      for(Ticket ticket: tickets){
+        income += ticket.getPrice();
+      }
+      return income;
+    } else {
+      return 0;
+    }
+  }
+
+  public int number_of_available_seats() {
+    return seats.size();
+  }
+
+  public int number_purchase_tickets() {
+    return tickets_purchase.size();
   }
 }
 
