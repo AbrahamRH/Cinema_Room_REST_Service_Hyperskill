@@ -1,15 +1,14 @@
 package cinema.controller;
 import cinema.Main;
-import cinema.Model.seat;
+import cinema.Model.Purchase;
+import cinema.Model.Ticket;
 import cinema.Model.theatre;
 import cinema.dto.theatreDto;
-import cinema.Exceptions.PurchasedException;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.coyote.Response;
+import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
+
+class Token {
+  private UUID token;
+  public Token(){
+
+  }
+  public UUID getToken() {
+    return token;
+  }
+}
 
 @RestController
 public class cinemaController {
@@ -25,6 +35,7 @@ public class cinemaController {
   private theatreDto cinemaDto;
   private final Logger log = LoggerFactory.getLogger(Main.class);
   ObjectMapper om = new ObjectMapper();
+
 
   @Autowired
   public cinemaController(theatre cinema){
@@ -44,14 +55,27 @@ public class cinemaController {
   }
 
   @PostMapping(path = "/purchase")
-  public ResponseEntity<?> purchase(@RequestBody seat seat) throws JsonProcessingException {
+  public ResponseEntity<?> purchase(@RequestBody Ticket ticket) throws JsonProcessingException {
     try {
-      return new ResponseEntity<>(om.writeValueAsString(cinemaDto.purchase(seat.getRow(), seat.getColumn())), HttpStatus.OK);
+      return new ResponseEntity<>(om.writeValueAsString(cinemaDto.purchase(ticket.getRow(), ticket.getColumn())), HttpStatus.OK);
     } catch (JsonProcessingException jsonEx) {
       log.error("Error /purchase  - {}", jsonEx.getMessage());
       return null;
     } catch (Exception indexEx){
       return new ResponseEntity<>(Map.of("error", indexEx.getMessage()),HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PostMapping(path = "/return")
+  public ResponseEntity<?> returnPurchase(@RequestBody Token token){
+    try {
+      return new ResponseEntity<>(Map.of("returned_ticket", cinemaDto.refundPurchase(token.getToken())) , HttpStatus.OK);
+    } catch (JsonProcessingException JsonEx){
+      log.error("Error /purchase  - {}", JsonEx.getMessage());
+      return null;
+    } catch (Exception tokenEx) {
+      return new ResponseEntity<>(Map.of("error", tokenEx.getMessage()),HttpStatus.BAD_REQUEST);
+
     }
   }
 

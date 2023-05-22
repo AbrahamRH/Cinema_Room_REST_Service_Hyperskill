@@ -9,7 +9,7 @@ import com.google.common.collect.HashBasedTable;
 public class theatre {
   int total_rows;
   int total_columns;
-  Table<Integer, Integer,Integer> seats = HashBasedTable.create();
+  Table<Integer, Integer,String> seats = HashBasedTable.create();
 
   public theatre(){
     this.total_columns = 9;
@@ -25,15 +25,14 @@ public class theatre {
     return total_rows;
   }
 
-  public Table<Integer,Integer, Integer> getSeats(){
+  public Table<Integer,Integer, String> getSeats(){
     return seats;
   }
 
   private void initSeats(){
     for(int i = 1 ; i <= total_rows ; i++){
-      int price = (i <= 4) ? 10 : 8;
       for(int j = 1 ; j <= total_columns ; j++){
-        seats.put(i,j,price);
+        seats.put(i,j,"");
       }
     }
   }

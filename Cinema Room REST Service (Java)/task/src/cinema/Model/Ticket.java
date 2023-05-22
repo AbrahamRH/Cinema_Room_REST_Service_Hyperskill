@@ -1,17 +1,17 @@
 package cinema.Model;
 
-public class seat {
+public class Ticket {
   private int row;
   private int column;
   private int price;
 
-  public seat(int row, int column){
+  public Ticket(int row, int column){
     this.row = row;
     this.column = column;
     this.price = (row <= 4) ? 10 : 8;
   }
 
-  public seat(){
+  public Ticket(){
 
   }
 

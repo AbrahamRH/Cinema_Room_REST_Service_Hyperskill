@@ -8,15 +8,15 @@
 <li><code class="language-json">row</code> — the row number;</li>
 <li><code class="language-json">column</code> — the column number.</li>
 </ul>
-<p>Take these variables and check if the specified ticket is available. If the ticket is booked, mark the seat as purchased and don't show it in the list.</p>
+<p>Take these variables and check if the specified ticket is available. If the ticket is booked, mark the ticket as purchased and don't show it in the list.</p>
 <p>If the purchase is successful, the response body should be as follows:</p>
 <pre><code class="language-json">{
     "row": 5,
     "column": 7,
     "price": 8
 }</code></pre>
-<p>The ticket price is determined by a row number. If the row number is less or equal to 4, set the price at <strong>10</strong>. All other rows cost <strong>8</strong> per seat.</p>
-<p>If the seat is taken, respond with a <code class="language-json">400 (Bad Request)</code> status code.<strong> </strong>The response body should contain the following:</p>
+<p>The ticket price is determined by a row number. If the row number is less or equal to 4, set the price at <strong>10</strong>. All other rows cost <strong>8</strong> per ticket.</p>
+<p>If the ticket is taken, respond with a <code class="language-json">400 (Bad Request)</code> status code.<strong> </strong>The response body should contain the following:</p>
 <pre><code class="language-json">{
     "error": "The ticket has been already purchased!"
 }</code></pre>

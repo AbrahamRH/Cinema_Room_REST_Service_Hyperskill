@@ -390,6 +390,262 @@ files:
         };
     }
   learner_created: false
+- name: src/cinema/Model/Ticket.java
+  visible: true
+  text: |
+    package cinema.Model;
+
+    public class Ticket {
+      private int row;
+      private int column;
+      private int price;
+
+      public Ticket(int row, int column){
+        this.row = row;
+        this.column = column;
+        this.price = (row <= 4) ? 10 : 8;
+      }
+
+      public Ticket(){
+
+      }
+
+      public int getRow() {
+        return row;
+      }
+
+      public int getColumn() {
+        return column;
+      }
+
+      public int getPrice() {
+        return price;
+      }
+    }
+  learner_created: true
+- name: src/cinema/Model/Purchase.java
+  visible: true
+  text: |
+    package cinema.Model;
+    import java.util.UUID;
+    public class Purchase {
+      private UUID token;
+      private Ticket ticket;
+
+      public Purchase(Ticket ticket){
+        this.token = UUID.randomUUID();
+        this.ticket = ticket;
+      }
+
+      public UUID getToken() {
+        return token;
+      }
+
+      public Ticket getTicket() {
+        return ticket;
+      }
+    }
+  learner_created: true
+- name: src/cinema/controller/cinemaController.java
+  visible: true
+  text: |
+    package cinema.controller;
+    import cinema.Main;
+    import cinema.Model.Purchase;
+    import cinema.Model.Ticket;
+    import cinema.Model.theatre;
+    import cinema.dto.theatreDto;
+    import com.fasterxml.jackson.annotation.JsonAutoDetect;
+    import com.fasterxml.jackson.annotation.PropertyAccessor;
+    import com.fasterxml.jackson.core.JsonProcessingException;
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.*;
+
+    import java.util.Map;
+    import java.util.UUID;
+
+    class Token {
+      private UUID token;
+      public Token(){
+
+      }
+      public UUID getToken() {
+        return token;
+      }
+    }
+
+    @RestController
+    public class cinemaController {
+      private final theatre cinema;
+      private theatreDto cinemaDto;
+      private final Logger log = LoggerFactory.getLogger(Main.class);
+      ObjectMapper om = new ObjectMapper();
+
+
+      @Autowired
+      public cinemaController(theatre cinema){
+        this.cinema = cinema;
+        this.cinemaDto = new theatreDto(cinema.getTotal_rows(),cinema.getTotal_columns(), cinema.getSeats());
+        om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+      }
+
+      @GetMapping(path="/seats")
+      public String getSeats(){
+        try {
+          return om.writeValueAsString(cinemaDto);
+        } catch(Exception e){
+          log.error("Error /seats  - {}", e.getMessage());
+          return null;
+        }
+      }
+
+      @PostMapping(path = "/purchase")
+      public ResponseEntity<?> purchase(@RequestBody Ticket ticket) throws JsonProcessingException {
+        try {
+          return new ResponseEntity<>(om.writeValueAsString(cinemaDto.purchase(ticket.getRow(), ticket.getColumn())), HttpStatus.OK);
+        } catch (JsonProcessingException jsonEx) {
+          log.error("Error /purchase  - {}", jsonEx.getMessage());
+          return null;
+        } catch (Exception indexEx){
+          return new ResponseEntity<>(Map.of("error", indexEx.getMessage()),HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      @PostMapping(path = "/return")
+      public ResponseEntity<?> returnPurchase(@RequestBody Token token){
+        try {
+          return new ResponseEntity<>(Map.of("returned_ticket", cinemaDto.refundPurchase(token.getToken())) , HttpStatus.OK);
+        } catch (JsonProcessingException JsonEx){
+          log.error("Error /purchase  - {}", JsonEx.getMessage());
+          return null;
+        } catch (Exception tokenEx) {
+          return new ResponseEntity<>(Map.of("error", tokenEx.getMessage()),HttpStatus.BAD_REQUEST);
+
+        }
+      }
+
+    }
+  learner_created: true
+- name: src/cinema/Model/theatre.java
+  visible: true
+  text: |
+    package cinema.Model;
+
+    import org.springframework.stereotype.Component;
+
+    import com.google.common.collect.Table;
+    import com.google.common.collect.HashBasedTable;
+
+    @Component
+    public class theatre {
+      int total_rows;
+      int total_columns;
+      Table<Integer, Integer,String> seats = HashBasedTable.create();
+
+      public theatre(){
+        this.total_columns = 9;
+        this.total_rows = 9;
+        initSeats();
+      }
+
+      public int getTotal_columns() {
+        return total_columns;
+      }
+
+      public int getTotal_rows() {
+        return total_rows;
+      }
+
+      public Table<Integer,Integer, String> getSeats(){
+        return seats;
+      }
+
+      private void initSeats(){
+        for(int i = 1 ; i <= total_rows ; i++){
+          for(int j = 1 ; j <= total_columns ; j++){
+            seats.put(i,j,"");
+          }
+        }
+      }
+    }
+  learner_created: true
+- name: src/cinema/Exceptions/PurchasedException.java
+  visible: true
+  text: |
+    package cinema.Exceptions;
+
+    public class PurchasedException extends Exception{
+      public PurchasedException(String message){
+        super(message);
+      }
+    }
+  learner_created: true
+- name: src/cinema/dto/theatreDto.java
+  visible: true
+  text: |+
+    package cinema.dto;
+
+    import cinema.Exceptions.PurchasedException;
+    import cinema.Model.Purchase;
+    import cinema.Model.Ticket;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import com.google.common.collect.Table;
+
+    import java.util.*;
+
+    public class theatreDto {
+      int total_rows;
+      int total_columns;
+      List<Ticket> available_seats = new ArrayList<>();
+      @JsonIgnore
+      Table<Integer,Integer,String> seats;
+      @JsonIgnore
+      Map<UUID, Ticket> tickets_purchase = new HashMap<>();
+
+      public theatreDto(int total_rows, int total_columns, Table<Integer,Integer,String> seats) {
+        this.total_rows = total_rows;
+        this.total_columns = total_columns;
+        this.seats = seats;
+        getAvailable_seats();
+      }
+
+      public void getAvailable_seats(){
+        for(int i = 1 ; i <= seats.rowKeySet().size() ; i++){
+          for(int j = 1 ; j <= seats.columnKeySet().size() ; j++){
+            available_seats.add(new Ticket(i,j));
+          }
+        }
+      }
+      public Purchase purchase(int row, int column) throws PurchasedException {
+        if(seats.contains(row, column)){
+          Purchase purchase =  new Purchase(new Ticket(row, column));
+          tickets_purchase.put(purchase.getToken(), purchase.getTicket());
+          seats.remove(row,column);
+          return  purchase;
+        } else if ( column > seats.columnKeySet().size() || row > seats.rowKeySet().size() || column < 1 || row < 1) {
+          throw new IndexOutOfBoundsException("The number of a row or a column is out of bounds!");
+        }
+        throw new PurchasedException("The ticket has been already purchased!");
+      }
+
+      public Ticket refundPurchase(UUID token) throws Exception {
+        if(tickets_purchase.containsKey(token)){
+          Ticket refund = tickets_purchase.get(token);
+          tickets_purchase.remove(token);
+          seats.put(refund.getRow(), refund.getColumn(), "");
+          return refund;
+        }
+        throw new Exception("Wrong token!");
+      }
+    }
+
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13378#comment
 status: Unchecked
 record: -1
